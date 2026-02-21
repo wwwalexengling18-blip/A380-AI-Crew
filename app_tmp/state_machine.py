@@ -1,11 +1,15 @@
 import time
+import msvcrt
 
 class StateMachine:
     def run(self):
-        print("State Machine läuft (STRG+C zum Beenden)")
-        try:
-            while True:
-                # später kommen hier: Aircraft Ready, ECAM, SOP Steps, GSX, usw.
-                time.sleep(1.0)
-        except KeyboardInterrupt:
-            print("State Machine beendet")
+        print("State Machine läuft (Q + Enter = Beenden)")
+        while True:
+            # Quit check
+            if msvcrt.kbhit():
+                key = msvcrt.getwch()
+                if key.lower() == "q":
+                    print("State Machine beendet")
+                    return
+
+            time.sleep(0.2)
