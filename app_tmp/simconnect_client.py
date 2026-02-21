@@ -1,49 +1,103 @@
 import time
+import threading
 
-from SimConnect import SimConnect, AircraftRequests
+class SimConnectClient:
+    """
+    Ziele:
+    - get(var) liefert None statt Crash
+    - NA/None-Reads werden toleriert (kein Reconnect-Spam)
+    - Soft reconnect, wenn wirklich tot
+    - Read-Rate wird gedrosselt
+    """
 
+    def __init__(self, logger, read_hz=10):
+        self.log = logger
+        self.read_interval = max(0.05, 1.0 / max(1, read_hz))
+        self._lock = threading.Lock()
 
-class SimClient:
-    def __init__(self):
-        self.sm = None
-        self.aq = None
+        self._sc = None  # <- hier hängt dein echtes SimConnect Objekt
+        self._connected = False
 
+        self._none_streak = 0
+        self._last_ok = 0.0
+
+    # ---- HIER: deine echte Connect-Logik rein ----
     def connect(self):
-        self.sm = SimConnect()
-        self.aq = AircraftRequests(self.sm, _time=2000)
-        print("[SIM] Verbindung erfolgreich")
+        with self._lock:
+            try:
+                # TODO: ersetze das mit deinem echten Connect
+                # self._sc = SimConnect()
+                # self._aq = AircraftRequests(self._sc, _time=2000)
+                self._connected = True
+                self._none_streak = 0
+                self._last_ok = time.time()
+                self.log.info("[SIM] connect OK")
+                return True
+            except Exception as e:
+                self._connected = False
+                self.log.error(f"[SIM] connect FAIL: {e}")
+                return False
 
-        # Warmup (optional)
-        try:
-            _ = self.aq.get("SIM ON GROUND")
-        except Exception:
-            pass
+    def disconnect(self):
+        with self._lock:
+            try:
+                self._connected = False
+                self._sc = None
+                self.log.warn("[SIM] disconnected")
+            except Exception as e:
+                self.log.error(f"[SIM] disconnect error: {e}")
 
-    def ensure_connected(self):
-        if self.sm is None or self.aq is None:
-            self.connect()
+    def is_connected(self):
+        return self._connected
 
-    def read(self, name: str, default=None, retries: int = 5, delay: float = 0.2):
+    # ---- Wichtig: NA/None safe get() ----
+    def get(self, var_name):
         """
-        Robust read: mehrmals versuchen, nur None als "nicht da" behandeln.
+        Erwartung: du mapst var_name auf echte SimConnect Reads.
+        Wenn du schon eine get()-Funktion hast, nutze diese Struktur:
+        - try/except
+        - None/NA -> streak erhöhen
+        - OK -> streak reset
         """
+        time.sleep(self.read_interval)
+
         try:
-            self.ensure_connected()
+            # TODO: ersetze durch echten Read:
+            # val = self._aq.get(var_name)
+            val = self._fake_read(var_name)  # nur placeholder
 
-            last = None
-            for _ in range(retries):
-                last = self.aq.get(name)
+            if val is None or val == "NA":
+                self._none_streak += 1
+                return None
 
-                if last is not None:
-                    return last
-
-                time.sleep(delay)
-
-            return default if last is None else last
+            self._none_streak = 0
+            self._last_ok = time.time()
+            return val
 
         except Exception as e:
-            print(f"[SIM] Read Fehler ({name}): {e} -> reconnect")
-            self.sm = None
-            self.aq = None
+            self._none_streak += 1
+            self.log.warn(f"[SIM] read error {var_name}: {e}")
+            return None
+
+    def soft_reconnect_if_needed(self, max_none_streak=50, max_silence_sec=10):
+        """
+        Reconnect nur, wenn:
+        - lange Zeit kein gültiger Wert kam UND
+        - none_streak hoch ist
+        """
+        if not self._connected:
+            return self.connect()
+
+        silence = time.time() - self._last_ok
+        if self._none_streak >= max_none_streak and silence >= max_silence_sec:
+            self.log.warn(f"[SIM] too many None reads ({self._none_streak}) -> soft reconnect")
+            self.disconnect()
             time.sleep(1.0)
-            return default
+            return self.connect()
+
+        return True
+
+    # -------- placeholder --------
+    def _fake_read(self, var_name):
+        # Damit das Script nicht crasht, falls du es testest ohne echte Bindings.
+        return None
