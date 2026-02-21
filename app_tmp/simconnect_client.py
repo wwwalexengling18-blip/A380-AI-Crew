@@ -34,3 +34,20 @@ class SimClient:
             self.aq = None
             time.sleep(1.0)
             return default
+
+    def debug_probe(self):
+        tests = [
+            "PLANE LATITUDE",
+            "PLANE LONGITUDE",
+            "PLANE ALTITUDE",
+            "INDICATED ALTITUDE",
+            "AIRSPEED INDICATED",
+            "GROUND VELOCITY",
+            "SIM ON GROUND",
+            "SIM IS PAUSED",
+            "ZULU TIME",
+        ]
+        print("[SIM] Probe…")
+        for t in tests:
+            v = self.read(t, "NA")
+            print(f"  {t}: {v}")
