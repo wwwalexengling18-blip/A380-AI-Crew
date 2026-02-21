@@ -20,3 +20,13 @@ powershell -Command "Expand-Archive -Path %TEMP%\A380.zip -DestinationPath %TARG
 echo.
 echo Installation abgeschlossen
 pause
+
+echo.
+echo Python Pakete installieren...
+cd /d "%TARGET%\A380-AI-Crew-main"
+
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+
+echo.
+echo Abhaengigkeiten fertig.
