@@ -1,44 +1,27 @@
-from simconnect_client import SimClient
 import time
+from logger import setup_logger
+from simconnect_client import SimConnectClient
+from aircraft_ready import AircraftReady
+from state_machine import StateMachine
 
-sim = SimClient()
+setup_logger()
+
+print("A380 AI startet...")
+
+sim = SimConnectClient()
 sim.connect()
 
-print("PROBE START")
+ready = AircraftReady(sim)
+sm = StateMachine()
 
-tests = [
-    "PLANE LATITUDE",
-    "PLANE LONGITUDE",
-    "SIMULATION TIME",
-    "ZULU TIME",
-    "GROUND VELOCITY"
-]
-
-for t in tests:
-    v = sim.read(t, "NA")
-    print(t, "=", v)
-
-print("PROBE LOOP")
 while True:
-    v = sim.read("PLANE LATITUDE", "NA")
-    print("LAT:", v)
-    time.sleep(1)
+    if not ready.is_ready():
+        print("Warte auf Aircraft Ready...")
+        time.sleep(1)
+        continue
 
-from logger import init_logger, log
-from simconnect_client import SimClient
-from diagnose import run_all
+    state = sm.update(sim)
 
-if __name__ == "__main__":
-    log_path = init_logger("A380_AI_DIAG")
-    log(f"Logfile: {log_path}")
+    print(f"State: {state}")
 
-    sim = SimClient()
-    try:
-        sim.connect()
-    except Exception as e:
-        log(f"[SIM] Connect FAIL: {e}")
-
-    # Diagnose laufen lassen (SimConnect + ggf. WASim)
-    run_all(sim)
-
-    log("Diagnose fertig. Du kannst die Logdatei öffnen und hier posten.")
+    time.sleep(0.2)
