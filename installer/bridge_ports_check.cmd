@@ -1,24 +1,29 @@
 @echo off
 setlocal EnableExtensions
-title A380 AI - Bridge Ports Check
+
+:: Selbst-Relaunch, damit es nicht sofort schließt
+if /i not "%~1"=="__RUN__" (
+  start "A380 AI - Bridge Ports Check" cmd /k ""%~f0" __RUN__"
+  exit /b
+)
+
+title A380 AI - Bridge Ports Check (fixed)
 
 echo =========================================
-echo   A380 AI - Bridge Ports Check
+echo   A380 AI - Bridge Ports Check (fixed)
 echo =========================================
 echo.
 
-set PORTS=19784 19785 8380 5000 8080 3000 9000 9876 8777 8888 1337
+set "PORTS=19784 19785 8380 5000 8080 3000 9000 9876 8777 8888 1337"
 
 for %%P in (%PORTS%) do (
-  powershell -NoProfile -Command ^
-    "if(Test-NetConnection -ComputerName 127.0.0.1 -Port %%P -WarningAction SilentlyContinue).TcpTestSucceeded { 'Port %%P : OPEN' } else { 'Port %%P : CLOSED' }"
+  powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+    "$p=%%P; $ok=(Test-NetConnection -ComputerName '127.0.0.1' -Port $p -WarningAction SilentlyContinue).TcpTestSucceeded; if ($ok) { Write-Host ('Port ' + $p + ' : OPEN') } else { Write-Host ('Port ' + $p + ' : CLOSED') }"
 )
 
 echo.
 echo Hinweis:
-echo - Wenn ALLES CLOSED ist: Bridge ist nicht gestartet oder nicht installiert.
-echo - Wenn ein Port OPEN ist: Schick mir den Port, dann bauen wir den LVar-Test.
+echo - Wenn mindestens ein Port OPEN ist, ist eine lokale Bridge/API erreichbar.
+echo - Wenn alles CLOSED ist, ist das normal bei WASimCommander: es ist kein HTTP-Server.
 echo.
-
 pause
-cmd /k
