@@ -1,6 +1,6 @@
-from state_machine import StateMachine
 from logger import log
 from simconnect_client import SimClient
+from state_machine import StateMachine
 
 if __name__ == "__main__":
     log("A380 AI Crew gestartet")
@@ -8,5 +8,5 @@ if __name__ == "__main__":
     sim = SimClient()
     sim.connect()
 
-    sm = StateMachine()
+    sm = StateMachine(sim)
     sm.run()
