@@ -1,34 +1,56 @@
+import os
 import time
-from logger import setup_logger
+
+from logger import Logger
 from simconnect_client import SimConnectClient
 from aircraft_ready import AircraftReady
 from state_machine import StateMachine
 
-setup_logger()
+def main():
+    tools_dir = os.path.join(os.path.expandvars("%USERPROFILE%"), "Documents", "FBW_A380_Tools")
+    log_dir = os.path.join(tools_dir, "logs")
 
-print("A380 AI startet...")
+    log = Logger(log_dir=log_dir, prefix="diag")
+    sim = SimConnectClient(log, read_hz=10)
 
-sim = SimConnectClient()
-sim.connect()
+    if not sim.connect():
+        log.error("Could not connect to sim. Exiting.")
+        return
 
-ready = AircraftReady(sim)
-sm = StateMachine()
+    ready = AircraftReady(sim, log)
 
-while True:
-    if not ready.is_ready():
-        print("Warte auf Aircraft Ready...")
-        time.sleep(1)
-        continue
+    # 1) SIM READY => Cold & Dark lesbar
+    if not ready.wait_for_sim_ready(timeout=90):
+        log.error("SIM never became ready.")
+        return
 
-    state = sm.update(sim)
+    # 2) Optional: FBW READY
+    fbw_ready = ready.wait_for_fbw_ready(timeout=120)
 
-    print(f"State: {state}")
+    sm = StateMachine(log)
+    log.info("Starting main loop... (Ctrl+C to stop)")
 
-    time.sleep(0.2)
+    try:
+        while True:
+            sim.soft_reconnect_if_needed()
 
-from aircraft_ready import AircraftReadyDetector
+            # Minimal-Kontext (erweitern wir später)
+            on_ground = sim.get("SIM ON GROUND")
+            ctx = {
+                "fbw_ready": fbw_ready,
+                "on_ground": on_ground,
+            }
 
-ready = AircraftReadyDetector(sim)
+            sm.tick(ctx)
 
-ready.wait_for_sim_ready()
-ready.wait_for_fbw_ready()   # optional
+            # Status alle ~2 Sekunden
+            time.sleep(0.2)
+
+    except KeyboardInterrupt:
+        log.warn("Stopped by user.")
+    finally:
+        sim.disconnect()
+        log.close()
+
+if __name__ == "__main__":
+    main()
