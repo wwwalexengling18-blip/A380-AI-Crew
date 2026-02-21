@@ -1,53 +1,31 @@
 import time
 
-class SimClient:
-    def __init__(self):
+def read(self, name: str, default=None, retries: int = 5, delay: float = 0.2):
+    """
+    Robust read:
+    - probiert mehrfach
+    - akzeptiert Werte ungleich None
+    - wartet kurz zwischen Versuchen
+    """
+    try:
+        self.ensure_connected()
+
+        last = None
+        for _ in range(retries):
+            last = self.aq.get(name)
+
+            # Einige Wrapper geben None/0 bei "noch nicht ready" zurück.
+            # Wir akzeptieren alles, was nicht None ist.
+            if last is not None:
+                return last
+
+            time.sleep(delay)
+
+        return default if last is None else last
+
+    except Exception as e:
+        print(f"[SIM] Read Fehler ({name}): {e} -> reconnect")
         self.sm = None
         self.aq = None
-
-    def connect(self):
-        # Lazy import, damit Fehlermeldungen sauberer sind
-        from SimConnect import SimConnect, AircraftRequests
-
-        self.sm = SimConnect()
-        self.aq = AircraftRequests(self.sm, _time=2000)
-        print("[SIM] Verbindung erfolgreich")
-
-    def ensure_connected(self):
-        if self.sm is None or self.aq is None:
-            self.connect()
-
-    def read(self, name: str, default=None):
-        """
-        Liest eine SimVar über AircraftRequests.
-        Wenn etwas schiefgeht (z.B. None/Disconnect), geben wir default zurück.
-        """
-        try:
-            self.ensure_connected()
-            val = self.aq.get(name)
-            if val is None:
-                return default
-            return val
-        except Exception as e:
-            print(f"[SIM] Read Fehler ({name}): {e} -> reconnect")
-            self.sm = None
-            self.aq = None
-            time.sleep(1.0)
-            return default
-
-    def debug_probe(self):
-        tests = [
-            "PLANE LATITUDE",
-            "PLANE LONGITUDE",
-            "PLANE ALTITUDE",
-            "INDICATED ALTITUDE",
-            "AIRSPEED INDICATED",
-            "GROUND VELOCITY",
-            "SIM ON GROUND",
-            "SIM IS PAUSED",
-            "ZULU TIME",
-        ]
-        print("[SIM] Probe…")
-        for t in tests:
-            v = self.read(t, "NA")
-            print(f"  {t}: {v}")
+        time.sleep(1.0)
+        return default
