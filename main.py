@@ -3,10 +3,14 @@ import os
 from datetime import datetime
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-LOG_DIR = os.path.join(BASE_DIR, "..", "logs")
+
+# Logs immer direkt neben main.py ablegen (funktioniert zuverlässig)
+LOG_DIR = os.path.join(BASE_DIR, "logs")
 os.makedirs(LOG_DIR, exist_ok=True)
 
-LOG_FILE = os.path.join(LOG_DIR, f"a380_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt")
+LOG_FILE = os.path.join(
+    LOG_DIR, f"a380_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+)
 
 def log(msg: str) -> None:
     print(msg, flush=True)
@@ -16,6 +20,7 @@ def log(msg: str) -> None:
 log("================================")
 log(" A380 AI Crew gestartet")
 log(" Status: Initialisierung")
+log(" Logfile: " + LOG_FILE)
 log("================================")
 
 phases = [
