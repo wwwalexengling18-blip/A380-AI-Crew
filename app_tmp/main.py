@@ -1,12 +1,25 @@
-from logger import log
 from simconnect_client import SimClient
-from state_machine import StateMachine
+import time
 
-if __name__ == "__main__":
-    log("A380 AI Crew gestartet")
+sim = SimClient()
+sim.connect()
 
-    sim = SimClient()
-    sim.connect()
+print("PROBE START")
 
-    sm = StateMachine(sim)
-    sm.run()
+tests = [
+    "PLANE LATITUDE",
+    "PLANE LONGITUDE",
+    "SIMULATION TIME",
+    "ZULU TIME",
+    "GROUND VELOCITY"
+]
+
+for t in tests:
+    v = sim.read(t, "NA")
+    print(t, "=", v)
+
+print("PROBE LOOP")
+while True:
+    v = sim.read("PLANE LATITUDE", "NA")
+    print("LAT:", v)
+    time.sleep(1)
