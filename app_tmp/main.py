@@ -25,3 +25,10 @@ while True:
     print(f"State: {state}")
 
     time.sleep(0.2)
+
+from aircraft_ready import AircraftReadyDetector
+
+ready = AircraftReadyDetector(sim)
+
+ready.wait_for_sim_ready()
+ready.wait_for_fbw_ready()   # optional
