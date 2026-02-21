@@ -1,28 +1,12 @@
 @echo off
 title A380 AI Crew - RUN
 
-set "BASE=%USERPROFILE%\Documents\FBW_A380_Tools\A380_AI_Crew\A380-AI-Crew-main"
+set BASE=%USERPROFILE%\Documents\FBW_A380_Tools\A380_AI_Crew\A380-AI-Crew-main
+cd /d "%BASE%"
 
 echo ============================
 echo   A380 AI Crew - START
 echo ============================
-echo.
 
-if not exist "%BASE%\main.py" (
-    echo Fehler: main.py nicht gefunden
-    echo Erwartet: %BASE%\main.py
-    pause
-    exit /b 1
-)
-
-cd /d "%BASE%"
-
-echo Arbeitsordner: %CD%
-echo Starte KI Core...
-echo.
-
-python "%BASE%\main.py"
-
-echo.
-echo KI beendet
+python "app\main.py"
 pause
