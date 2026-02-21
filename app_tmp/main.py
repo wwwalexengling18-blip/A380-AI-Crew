@@ -27,3 +27,5 @@ if __name__ == "__main__":
 
     sm = StateMachine(sim)
     sm.run()
+
+sim.debug_probe()
