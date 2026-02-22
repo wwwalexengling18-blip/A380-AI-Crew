@@ -1,0 +1,9 @@
+name: a380x_unknown
+sim: unknown
+aircraft: unknown
+gsx: unknown
+bridge: auto
+read_hz: 5
+write_hz: 2
+startup_warmup_sec: 90
+aircraft_ready_min_valid_reads: 10
