@@ -1,0 +1,9 @@
+name: a380x_msfs2024_gsx
+sim: msfs2024
+aircraft: fbw_a380x
+gsx: true
+bridge: auto
+read_hz: 10
+write_hz: 5
+startup_warmup_sec: 60
+aircraft_ready_min_valid_reads: 5
