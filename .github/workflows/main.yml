@@ -25,8 +25,8 @@ jobs:
           pip install pyinstaller
 
       - name: Portable EXE bauen
-        run: |
-          pyinstaller --onefile --name A380X_AI FBW_A380X_AI_Crew_Phase1-8_Starter/tools/run_ai.py
+ run: |
+    pyinstaller --onefile --name A380X_AI FBW_A380X_AI_Crew_Phase1-8_Starter/tools/run_ai.py
 
       - name: Inno Setup installieren
         run: |
