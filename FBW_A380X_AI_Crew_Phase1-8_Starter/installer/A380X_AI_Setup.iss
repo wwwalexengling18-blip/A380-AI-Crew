@@ -26,6 +26,15 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
+Source: "..\dist\A380X_AI\A380X_AI.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\A380X_AI_Run.cmd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\A380X_AI_Doctor.cmd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\A380X_AI_Install.cmd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\requirements.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\sop\*"; DestDir: "{app}\sop"; Flags: recursesubdirs ignoreversion
+Source: "..\src\*"; DestDir: "{app}\src"; Flags: recursesubdirs ignoreversion
+Source: "..\tools\*"; DestDir: "{app}\tools"; Flags: recursesubdirs ignoreversion
+
 Source: "..\\dist\\A380X_AICrew\\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
 Source: "..\\README.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\\docs\\*"; DestDir: "{app}\\docs"; Flags: recursesubdirs createallsubdirs ignoreversion
